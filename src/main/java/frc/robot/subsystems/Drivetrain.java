@@ -58,7 +58,6 @@ public class Drivetrain extends SubsystemBase{
     }
 
     public void drive(double x, double y, double rot, boolean fieldRelative) {
-        //TODO it looks like fromFieldRelative and fromRobotRelative might be the opposite of what we'd expect... if it breaks look here and try to flip.
         if (fieldRelative) {
             m_swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 ChassisSpeeds.fromFieldRelativeSpeeds(x, y, rot, new Rotation2d(Math.toRadians(navx.getAngle())))

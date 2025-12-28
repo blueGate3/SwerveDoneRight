@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import com.revrobotics.spark.*;
 import com.revrobotics.*;
@@ -33,6 +34,8 @@ public class SwerveModule extends SubsystemBase {
         private SparkClosedLoopController m_driveController;
         private SparkClosedLoopController m_turnController;
 
+        private SwerveModuleState m_state = new SwerveModuleState();
+        private SwerveModulePosition m_position = new SwerveModulePosition();
         /**
          * Constructs a SwerveModule with a drive motor, turning motor, drive encoder and turning encoder.
          *
@@ -49,6 +52,9 @@ public class SwerveModule extends SubsystemBase {
                 .smartCurrentLimit(55)
                 .openLoopRampRate(.35)
                 .idleMode(IdleMode.kBrake);
+            m_driveMotorConfig.encoder
+                .positionConversionFactor(1/19.2678)
+                .velocityConversionFactor((1/19.2678) * 60);
 
             // m_driveMotorConfig.closedLoop
             //     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -92,16 +98,25 @@ public class SwerveModule extends SubsystemBase {
          * @param desiredState Desired state with speed and angle.
          */
         public void setDesiredState(SwerveModuleState desiredState) {
-            desiredState.optimize(Rotation2d.fromRadians((getTurnEncoderOutput(false))));// Optimize the reference state to avoid spinning further than 90 degrees
+            desiredState.optimize(Rotation2d.fromRadians(m_turningEncoder.getPosition()));// Optimize the reference state to avoid spinning further than 90 degrees
+            desiredState.cosineScale(Rotation2d.fromRadians(m_turningEncoder.getPosition()));
             // double drivePower = (desiredState.speedMetersPerSecond) * desiredState.angle.minus(new Rotation2d(getTurnEncoderOutput(false))).getCos(); //multiplies drive power by how close we are to our desired angle so we dont tear up the tires.
-            // m_driveMotor.set(drivePower); //will eventually switch to PID below
+            m_driveMotor.set((desiredState.speedMetersPerSecond/DriveConst.kMaxSpeed)); //will eventually switch to PID below
 
-            m_driveController.setReference(desiredState.speedMetersPerSecond, ControlType.kVelocity); //desired state gives velocity, to convert: rpm = (Velocity(in m/s) * 60)/pi*diameter(aka wheel circumference)
+            //m_driveController.setReference(desiredState.speedMetersPerSecond, ControlType.kVelocity); //desired state gives velocity, to convert: rpm = (Velocity(in m/s) * 60)/pi*diameter(aka wheel circumference)
             m_turnController.setReference(desiredState.angle.getRadians(), ControlType.kPosition);
         }
         
         public SwerveModuleState getState() {
-            return new SwerveModuleState(m_driveEncoder.getVelocity(), new Rotation2d(getTurnEncoderOutput(false)));//the getVelocity() function normally returns RPM but is scaled in the SwerveModule constructor to return m/s
+            m_state.angle = Rotation2d.fromDegrees(m_turningEncoder.getPosition());
+            m_state.speedMetersPerSecond = m_driveEncoder.getVelocity();
+            return m_state;
+        }
+
+        public SwerveModulePosition getPosition() {
+            m_position.angle = Rotation2d.fromDegrees(m_turningEncoder.getPosition());
+            m_position.distanceMeters = m_driveEncoder.getPosition();
+            return m_position;
         }
         /**
          * gets the encoder readout of the throughbores, either in absolute position (between 0 and 1) or in radians.
