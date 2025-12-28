@@ -73,11 +73,12 @@ public class SwerveModule extends SubsystemBase {
             m_turningEncoder = m_turningMotor.getAbsoluteEncoder();
 
             m_turningMotorConfig.absoluteEncoder
-                .inverted(true)
+                .inverted(false)
                 .velocityConversionFactor(DriveConst.turnEncoderScaler/60)
                 .positionConversionFactor(DriveConst.turnEncoderScaler);
             m_turningMotorConfig
                 .idleMode(IdleMode.kBrake)
+                .inverted(true)
                 .smartCurrentLimit(40);
             m_turningMotorConfig.closedLoop
                 .pid(.7, 0.0, 0.05)
@@ -89,7 +90,7 @@ public class SwerveModule extends SubsystemBase {
             m_turnController = m_turningMotor.getClosedLoopController();
             m_turningMotor.configure(m_turningMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-            System.out.println("Drive Motor CAN ID: " + driveMotorChannel + ", Initial Encoder Value: "+ (getTurnEncoderOutput(true)));
+            System.out.println("Drive Motor CAN ID: " + driveMotorChannel + ", Initial Encoder Value: " + Math.toDegrees(m_turningEncoder.getPosition()));
         }
 
         /**
@@ -99,7 +100,6 @@ public class SwerveModule extends SubsystemBase {
         public void setDesiredState(SwerveModuleState desiredState) {
             desiredState.optimize(Rotation2d.fromRadians(m_turningEncoder.getPosition()));// Optimize the reference state to avoid spinning further than 90 degrees
             desiredState.cosineScale(Rotation2d.fromRadians(m_turningEncoder.getPosition()));
-            // double drivePower = (desiredState.speedMetersPerSecond) * desiredState.angle.minus(new Rotation2d(getTurnEncoderOutput(false))).getCos(); //multiplies drive power by how close we are to our desired angle so we dont tear up the tires.
             m_driveMotor.set((desiredState.speedMetersPerSecond/DriveConst.kMaxSpeed)); //will eventually switch to PID below
 
             //m_driveController.setReference(desiredState.speedMetersPerSecond, ControlType.kVelocity); //desired state gives velocity, to convert: rpm = (Velocity(in m/s) * 60)/pi*diameter(aka wheel circumference)
@@ -116,18 +116,5 @@ public class SwerveModule extends SubsystemBase {
             m_position.angle = Rotation2d.fromRadians(m_turningEncoder.getPosition());
             m_position.distanceMeters = m_driveEncoder.getPosition();
             return m_position;
-        }
-        /**
-         * gets the encoder readout of the throughbores, either in absolute position (between 0 and 1) or in radians.
-         * @param inDegrees if true, converts output to degrees, otherwise gives radians
-         * @return the encoder position
-         */
-        public double getTurnEncoderOutput(boolean inDegrees) {
-            double encoderValue = m_turningEncoder.getPosition(); //TODO run through gear ratio!?!?! if so, see above formulas for how to. 
-            if(inDegrees) {
-                return Math.toRadians((encoderValue*360)); //multiplies by 360 to get degrees, then converts to radians using Math.toRadians (expects degree parameter)
-            } else {
-                return encoderValue;
-            }
         }
 }

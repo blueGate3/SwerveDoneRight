@@ -27,9 +27,10 @@ public class Drivetrain extends SubsystemBase{
         .getStructTopic("Robot/CurrentPose", Pose2d.struct).publish();
 
     private final AHRS navx = new AHRS(NavXComType.kMXP_SPI); 
-    private final Translation2d m_frontRightLocation = new Translation2d( -0.305, 0.305);//side length total is at 29.5 inches including modules. Divided by 2 and set to meters is .37465 meters from one side to the tip of the module, minus a bit bc module is only like 1/2 distance. 
-    private final Translation2d m_frontLeftLocation = new Translation2d(0.305,  0.305);//the frc kinematics section has the coordinates so x is front-back, where front is positive, and y is left-right, where left is positive. it's communist to the extreme but will affect the way we initialize our module locations.
-    private final Translation2d m_backLeftLocation = new Translation2d(0.305,  -0.305);//continued: that's the reason for the strange abnormal abhorrent disgusting affronts-before-God translation signs. 
+    
+    private final Translation2d m_frontLeftLocation = new Translation2d(0.305,  0.305);
+    private final Translation2d m_frontRightLocation = new Translation2d( 0.305, -0.305);
+    private final Translation2d m_backLeftLocation = new Translation2d(-0.305,  0.305); 
     private final Translation2d m_backRightLocation = new Translation2d( -0.305, -0.305);
 
     // Constructor for each swerve module
@@ -37,15 +38,14 @@ public class Drivetrain extends SubsystemBase{
     private final SwerveModule m_frontRight = new SwerveModule(DriveConst.FRDrive, DriveConst.FRTurn); //
     private final SwerveModule m_backRight = new SwerveModule(DriveConst.BRDrive, DriveConst.BRTurn); //
     private final SwerveModule m_backLeft = new SwerveModule(DriveConst.BLDrive, DriveConst.BLTurn); //
-    private final SwerveModule[] m_swerveModules = {m_frontLeft, m_frontRight, m_backRight, m_backLeft};
+    private final SwerveModule[] m_swerveModules = {m_frontLeft, m_frontRight, m_backLeft, m_backRight};
 
-    // Swerve Drive Kinematics (note the ordering [frontRight, frontLeft, backLeft, backRight] [counterclockwise from the frontRight])
     private SwerveModuleState[] m_swerveModuleStates;
-    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(m_frontRightLocation, m_frontLeftLocation, m_backLeftLocation, m_backRightLocation);
+    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
 
     private SwerveModulePosition[] m_positions = {
-        m_frontRight.getPosition(),
         m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
         m_backLeft.getPosition(),
         m_backRight.getPosition()
     };
@@ -53,49 +53,54 @@ public class Drivetrain extends SubsystemBase{
     public Drivetrain() {
         m_odometry = new SwerveDriveOdometry(
             m_kinematics, 
-            Rotation2d.fromDegrees(navx.getAngle()), 
+            navx.getRotation2d(), 
             m_positions);
     }
     @Override
     public void periodic() {
-        m_positions[0] = m_frontRight.getPosition();
-        m_positions[1] = m_frontLeft.getPosition();
+        m_positions[0] = m_frontLeft.getPosition();
+        m_positions[1] = m_frontRight.getPosition();
         m_positions[2] = m_backLeft.getPosition();
         m_positions[3] = m_backRight.getPosition();
         m_odometry.update(
-            Rotation2d.fromDegrees(navx.getAngle()), 
+            navx.getRotation2d(), 
             m_positions
         );
         posePub.set(m_odometry.getPoseMeters());
 
-        
-    SmartDashboard.putNumber("FrontLeft", m_frontLeft.getPosition().distanceMeters);
-    SmartDashboard.putNumber("FrontRight", m_frontRight.getPosition().distanceMeters);
-    SmartDashboard.putNumber("BackRight", m_backRight.getPosition().distanceMeters);
-    SmartDashboard.putNumber("BackLeft", m_backLeft.getPosition().distanceMeters);
+        SmartDashboard.putNumber("FrontLeftDrive", m_frontLeft.getPosition().distanceMeters);
+        SmartDashboard.putNumber("FrontRightDrive", m_frontRight.getPosition().distanceMeters);
+        SmartDashboard.putNumber("BackLeftDrive", m_backLeft.getPosition().distanceMeters);
+        SmartDashboard.putNumber("BackRightDrive", m_backRight.getPosition().distanceMeters);
+
+        SmartDashboard.putNumber("FrontLeftTurn", m_frontLeft.getPosition().angle.getDegrees());
+        SmartDashboard.putNumber("FrontRightTurn", m_frontRight.getPosition().angle.getDegrees());
+        SmartDashboard.putNumber("BackLeftTurn", m_backLeft.getPosition().angle.getDegrees());
+        SmartDashboard.putNumber("BackRightTurn", m_backRight.getPosition().angle.getDegrees());
+    SmartDashboard.putNumber("NavX Reading", navx.getRotation2d().getDegrees());
     }
 
     public void drive(double x, double y, double rot, boolean fieldRelative) {
         if (fieldRelative) {
             m_swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                ChassisSpeeds.fromFieldRelativeSpeeds(x, y, rot, new Rotation2d(Math.toRadians(navx.getAngle())))
+                ChassisSpeeds.fromFieldRelativeSpeeds(x, y, rot, navx.getRotation2d())
             );  
         } else {
             m_swerveModuleStates = m_kinematics.toSwerveModuleStates(
-                ChassisSpeeds.fromRobotRelativeSpeeds(x, y, rot, new Rotation2d(Math.toRadians(navx.getAngle())))
+                ChassisSpeeds.fromRobotRelativeSpeeds(x, y, rot, navx.getRotation2d())
             );  
         }
         SwerveDriveKinematics.desaturateWheelSpeeds(m_swerveModuleStates, DriveConst.kMaxSpeed);
-            m_frontRight.setDesiredState(m_swerveModuleStates[0]);
-            m_frontLeft.setDesiredState(m_swerveModuleStates[1]);
+            m_frontLeft.setDesiredState(m_swerveModuleStates[0]);
+            m_frontRight.setDesiredState(m_swerveModuleStates[1]);
             m_backLeft.setDesiredState(m_swerveModuleStates[2]);
             m_backRight.setDesiredState(m_swerveModuleStates[3]);
     }
 
     public void driveWithChassisSpeeds(ChassisSpeeds chassisSpeeds) {
         m_swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
-        m_frontRight.setDesiredState(m_swerveModuleStates[0]);
-        m_frontLeft.setDesiredState(m_swerveModuleStates[1]);
+        m_frontLeft.setDesiredState(m_swerveModuleStates[0]);
+        m_frontRight.setDesiredState(m_swerveModuleStates[1]);
         m_backLeft.setDesiredState(m_swerveModuleStates[2]);
         m_backRight.setDesiredState(m_swerveModuleStates[3]);
     }
