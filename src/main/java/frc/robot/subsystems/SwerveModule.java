@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import com.revrobotics.spark.*;
 import com.revrobotics.*;
@@ -41,10 +42,10 @@ public class SwerveModule extends SubsystemBase {
          */
         public SwerveModule(int driveMotorChannel, int turningMotorChannel) {
             m_driveMotor = new SparkFlex(driveMotorChannel, SparkLowLevel.MotorType.kBrushless);
+            m_driveMotorConfig.encoder.positionConversionFactor(DriveConst.drivingWheelGearRatio);
             m_driveMotorConfig = new SparkFlexConfig();
             m_driveEncoder = m_driveMotor.getEncoder(); //vortex built in encoder
             m_driveEncoder.setPosition(0); 
-
             m_driveMotorConfig
                 .smartCurrentLimit(55)
                 .openLoopRampRate(.35)
@@ -117,4 +118,7 @@ public class SwerveModule extends SubsystemBase {
             }
         }
 
+        public SwerveModulePosition getPosition() {
+            return new SwerveModulePosition(m_driveMotor.getEncoder().getPosition(), new Rotation2d(getTurnEncoderOutput(false)));
+        }
 }
