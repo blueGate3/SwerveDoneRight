@@ -73,4 +73,12 @@ public class Drivetrain extends SubsystemBase{
             m_backLeft.setDesiredState(m_swerveModuleStates[2]);
             m_backRight.setDesiredState(m_swerveModuleStates[3]);
     }
+
+    public void driveWithChassisSpeeds(ChassisSpeeds chassisSpeeds) {
+        m_swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
+        m_frontRight.setDesiredState(m_swerveModuleStates[0]);
+        m_frontLeft.setDesiredState(m_swerveModuleStates[1]);
+        m_backLeft.setDesiredState(m_swerveModuleStates[2]);
+        m_backRight.setDesiredState(m_swerveModuleStates[3]);
+    }
 }

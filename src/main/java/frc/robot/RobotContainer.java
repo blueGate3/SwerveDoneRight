@@ -10,12 +10,25 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.subsystems.Drivetrain;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
-  Drivetrain drivetrain = new Drivetrain();
-  CommandPS4Controller m_dc = new CommandPS4Controller(0);
+
+  private final Drivetrain m_drivetrain = new Drivetrain();
+  private final CommandPS4Controller m_driverController = new CommandPS4Controller(0);
+
   public RobotContainer() {
     configureBindings();
+
+    new RunCommand(
+      () -> m_drivetrain.drive(
+          m_driverController.getRawAxis(0), 
+          m_driverController.getRawAxis(1), 
+          m_driverController.getRawAxis(4), false), 
+        m_drivetrain);
+    
   }
 
   private void configureBindings() {
