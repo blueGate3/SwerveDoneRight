@@ -27,7 +27,8 @@ public class Constants {
             public static final double kModuleMaxAngularAcceleration = 2 * Math.PI; // radians per second squared
             public static final double kMaxSpeed = 5.88; // 5.88 meters per second or 19.3 ft/s (max speed of SDS Mk4i with Vortex motor)
             public static final double turnEncoderScaler = 2* Math.PI;
-            public static final double driveConversionFactor = (Math.PI * kWheelDiameter) / drivingWheelGearRatio;
+            //public static final double driveConversionFactor = (Math.PI * kWheelDiameter) / drivingWheelGearRatio;
+            public static final double driveConversionFactor = (1/19.2678);
     
             public static final double speedLimiter = .62;
     }   

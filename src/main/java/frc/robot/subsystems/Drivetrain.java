@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
@@ -14,6 +16,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConst;
 
@@ -34,6 +37,7 @@ public class Drivetrain extends SubsystemBase{
     private final SwerveModule m_frontRight = new SwerveModule(DriveConst.FRDrive, DriveConst.FRTurn); //
     private final SwerveModule m_backRight = new SwerveModule(DriveConst.BRDrive, DriveConst.BRTurn); //
     private final SwerveModule m_backLeft = new SwerveModule(DriveConst.BLDrive, DriveConst.BLTurn); //
+    private final SwerveModule[] m_swerveModules = {m_frontLeft, m_frontRight, m_backRight, m_backLeft};
 
     // Swerve Drive Kinematics (note the ordering [frontRight, frontLeft, backLeft, backRight] [counterclockwise from the frontRight])
     private SwerveModuleState[] m_swerveModuleStates;
@@ -49,12 +53,26 @@ public class Drivetrain extends SubsystemBase{
     public Drivetrain() {
         m_odometry = new SwerveDriveOdometry(
             m_kinematics, 
-            navx.getRotation2d(), 
+            Rotation2d.fromDegrees(navx.getAngle()), 
             m_positions);
     }
     @Override
     public void periodic() {
+        m_positions[0] = m_frontRight.getPosition();
+        m_positions[1] = m_frontLeft.getPosition();
+        m_positions[2] = m_backLeft.getPosition();
+        m_positions[3] = m_backRight.getPosition();
+        m_odometry.update(
+            Rotation2d.fromDegrees(navx.getAngle()), 
+            m_positions
+        );
         posePub.set(m_odometry.getPoseMeters());
+
+        
+    SmartDashboard.putNumber("FrontLeft", m_frontLeft.getPosition().distanceMeters);
+    SmartDashboard.putNumber("FrontRight", m_frontRight.getPosition().distanceMeters);
+    SmartDashboard.putNumber("BackRight", m_backRight.getPosition().distanceMeters);
+    SmartDashboard.putNumber("BackLeft", m_backLeft.getPosition().distanceMeters);
     }
 
     public void drive(double x, double y, double rot, boolean fieldRelative) {
