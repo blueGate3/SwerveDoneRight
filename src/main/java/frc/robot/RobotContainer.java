@@ -35,7 +35,7 @@ public class RobotContainer {
       Commands.run(
         () -> m_drivetrain.drive(
           -m_driverController.getRawAxis(1), 
-          m_driverController.getRawAxis(0), 
+          -m_driverController.getRawAxis(0), 
           m_driverController.getRawAxis(4), 
           true), 
         m_drivetrain)
@@ -47,7 +47,7 @@ public class RobotContainer {
 
   public void repeat() {
     SmartDashboard.putNumber("OdometryX", poseSub.get().getX());
-    SmartDashboard.putNumber("OdometryY", poseSub.get().getTranslation().getMeasureY().in(Meters)); //TODO for some reason this is backwards?
+    SmartDashboard.putNumber("OdometryY", poseSub.get().getTranslation().getY()); //TODO for some reason this is backwards?
     SmartDashboard.putNumber("OdometryRot", poseSub.get().getRotation().getDegrees());
   }
 

@@ -68,10 +68,10 @@ public class Drivetrain extends SubsystemBase{
         );
         posePub.set(m_odometry.getPoseMeters());
 
-        SmartDashboard.putNumber("FrontLeftDrive", m_frontLeft.getPosition().distanceMeters);
-        SmartDashboard.putNumber("FrontRightDrive", m_frontRight.getPosition().distanceMeters);
-        SmartDashboard.putNumber("BackLeftDrive", m_backLeft.getPosition().distanceMeters);
-        SmartDashboard.putNumber("BackRightDrive", m_backRight.getPosition().distanceMeters);
+        SmartDashboard.putNumber("FrontLeftDriveSpeed", m_frontLeft.getState().speedMetersPerSecond);
+        SmartDashboard.putNumber("FrontRightDriveSpeed", m_frontRight.getState().speedMetersPerSecond);
+        SmartDashboard.putNumber("BackLeftDriveSpeed", m_backLeft.getState().speedMetersPerSecond);
+        SmartDashboard.putNumber("BackRightDriveSpeed", m_backRight.getState().speedMetersPerSecond);
 
         SmartDashboard.putNumber("FrontLeftTurn", m_frontLeft.getPosition().angle.getDegrees());
         SmartDashboard.putNumber("FrontRightTurn", m_frontRight.getPosition().angle.getDegrees());
@@ -81,6 +81,9 @@ public class Drivetrain extends SubsystemBase{
     }
 
     public void drive(double x, double y, double rot, boolean fieldRelative) {
+        x *= DriveConst.kMaxSpeed;
+        y *= DriveConst.kMaxSpeed;
+        rot *= DriveConst.kModuleMaxAngularAcceleration;
         if (fieldRelative) {
             m_swerveModuleStates = m_kinematics.toSwerveModuleStates(
                 ChassisSpeeds.fromFieldRelativeSpeeds(x, y, rot, navx.getRotation2d())
