@@ -28,44 +28,38 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConst;
 
 public class Drivetrain extends SubsystemBase{
+    private final Translation2d m_frontLeftLocation = new Translation2d(DriveConst.halfSideLength, DriveConst.halfSideLength);
+    private final Translation2d m_frontRightLocation = new Translation2d( DriveConst.halfSideLength, -DriveConst.halfSideLength);
+    private final Translation2d m_backLeftLocation = new Translation2d(-DriveConst.halfSideLength,  DriveConst.halfSideLength); 
+    private final Translation2d m_backRightLocation = new Translation2d( -DriveConst.halfSideLength, -DriveConst.halfSideLength);
+
+    private final SwerveModule m_frontLeft = new SwerveModule(DriveConst.FLDrive, DriveConst.FLTURN); 
+    private final SwerveModule m_frontRight = new SwerveModule(DriveConst.FRDrive, DriveConst.FRTurn); 
+    private final SwerveModule m_backRight = new SwerveModule(DriveConst.BRDrive, DriveConst.BRTurn); 
+    private final SwerveModule m_backLeft = new SwerveModule(DriveConst.BLDrive, DriveConst.BLTurn); 
+
+    private SwerveModuleState[] m_swerveModuleStates;
+    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
+    private SwerveModulePosition[] m_positions = {m_frontLeft.getPosition(), m_frontRight.getPosition(), m_backLeft.getPosition(), m_backRight.getPosition()};
+    private SwerveModuleState[] m_robotState = {m_frontLeft.getState(), m_frontRight.getState(), m_backLeft.getState(), m_backRight.getState()}; //needed for pathplanner
+    
+    //pose controllers for choreo + misc. wpilib tasks. pathplanner uses own controllers, same kP kI kD though.
     private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
     private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
-    private final PIDController rotController = new PIDController(7.5, 0.0, 0.0);
+    private final PIDController rotController = new PIDController(7.5, 0.0, 0.0); //different from other controller bc continuous input is from -Pi to PI
 
     private final SwerveDriveOdometry m_odometry;
     private final StructPublisher<Pose2d> posePub = NetworkTableInstance.getDefault()
-        .getStructTopic("Robot/CurrentPose", Pose2d.struct).publish();
-    private final AHRS navx = new AHRS(NavXComType.kMXP_SPI); 
-    
-    private final Translation2d m_frontLeftLocation = new Translation2d(0.305,  0.305);
-    private final Translation2d m_frontRightLocation = new Translation2d( 0.305, -0.305);
-    private final Translation2d m_backLeftLocation = new Translation2d(-0.305,  0.305); 
-    private final Translation2d m_backRightLocation = new Translation2d( -0.305, -0.305);
-
-    // Constructor for each swerve module
-    private final SwerveModule m_frontLeft = new SwerveModule(DriveConst.FLDrive, DriveConst.FLTURN); //
-    private final SwerveModule m_frontRight = new SwerveModule(DriveConst.FRDrive, DriveConst.FRTurn); //
-    private final SwerveModule m_backRight = new SwerveModule(DriveConst.BRDrive, DriveConst.BRTurn); //
-    private final SwerveModule m_backLeft = new SwerveModule(DriveConst.BLDrive, DriveConst.BLTurn); //
-    private final SwerveModule[] m_swerveModules = {m_frontLeft, m_frontRight, m_backLeft, m_backRight};
-
-    private SwerveModuleState[] m_swerveModuleStates;
-    private SwerveModuleState[] m_robotState = {m_frontLeft.getState(), m_frontRight.getState(), m_backLeft.getState(), m_backRight.getState()};
-    private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
-
-    private SwerveModulePosition[] m_positions = {
-        m_frontLeft.getPosition(),
-        m_frontRight.getPosition(),
-        m_backLeft.getPosition(),
-        m_backRight.getPosition()
-    };
+        .getStructTopic("Robot/CurrentPose", Pose2d.struct).publish(); //use as template for publishing data to NetworkTables.
+    private final AHRS navx = new AHRS(NavXComType.kMXP_SPI); //ensure "spi" is switched "on" on navx2
 
     public Drivetrain() {
         m_odometry = new SwerveDriveOdometry(
             m_kinematics, 
             navx.getRotation2d(), 
             m_positions);
-        rotController.enableContinuousInput(-Math.PI, Math.PI);
+        rotController.enableContinuousInput(-Math.PI, Math.PI); //for choreo
+
          try {
             AutoBuilder.configure(
                 this::getOdometry, // Robot pose supplier
@@ -103,19 +97,7 @@ public class Drivetrain extends SubsystemBase{
             m_positions
         );
         posePub.set(m_odometry.getPoseMeters());
-
-        SmartDashboard.putNumber("FrontLeftDriveSpeed", m_frontLeft.getState().speedMetersPerSecond);
-        SmartDashboard.putNumber("FrontRightDriveSpeed", m_frontRight.getState().speedMetersPerSecond);
-        SmartDashboard.putNumber("BackLeftDriveSpeed", m_backLeft.getState().speedMetersPerSecond);
-        SmartDashboard.putNumber("BackRightDriveSpeed", m_backRight.getState().speedMetersPerSecond);
-
-        SmartDashboard.putNumber("FrontLeftTurn", m_frontLeft.getPosition().angle.getDegrees());
-        SmartDashboard.putNumber("FrontRightTurn", m_frontRight.getPosition().angle.getDegrees());
-        SmartDashboard.putNumber("BackLeftTurn", m_backLeft.getPosition().angle.getDegrees());
-        SmartDashboard.putNumber("BackRightTurn", m_backRight.getPosition().angle.getDegrees());
-        SmartDashboard.putNumber("NavX Reading", navx.getRotation2d().getDegrees());
     }
-
     public void drive(double x, double y, double rot, boolean fieldRelative) {
         x *= DriveConst.kMaxSpeed;
         y *= DriveConst.kMaxSpeed;

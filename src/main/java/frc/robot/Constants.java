@@ -14,7 +14,8 @@ public class Constants {
             public static final int BRTurn = 6;
             public static final int BLDrive = 7;
             public static final int BLTurn = 8;
-    
+            public static final double sideLength = .61; //meters from one module center to the other. 
+            public static final double halfSideLength = sideLength/2;
             /* 
             * - m/s to rpm formula: RPM = ((Velocity in m/s)/(circumference)) *60 (you multiply by 60 to convert revolutions per second to revolutions per minute)
             * - with gear ratio: rpm of output = rpm of motor * (gear ratio/output gear teeth)
