@@ -5,6 +5,12 @@ import static edu.wpi.first.units.Units.Rotation;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import choreo.*;
+import choreo.trajectory.SwerveSample;
+import choreo.trajectory.Trajectory;
+import edu.wpi.first.math.controller.HolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -14,18 +20,24 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConst;
+import frc.robot.Constants.TrajectoryConst;
 
 public class Drivetrain extends SubsystemBase{
+    private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
+    private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+    private final PIDController rotController = new PIDController(7.5, 0.0, 0.0);
 
     private final SwerveDriveOdometry m_odometry;
     private final StructPublisher<Pose2d> posePub = NetworkTableInstance.getDefault()
         .getStructTopic("Robot/CurrentPose", Pose2d.struct).publish();
-
     private final AHRS navx = new AHRS(NavXComType.kMXP_SPI); 
     
     private final Translation2d m_frontLeftLocation = new Translation2d(0.305,  0.305);
@@ -55,6 +67,7 @@ public class Drivetrain extends SubsystemBase{
             m_kinematics, 
             navx.getRotation2d(), 
             m_positions);
+        rotController.enableContinuousInput(-Math.PI, Math.PI);
     }
     @Override
     public void periodic() {
@@ -77,7 +90,7 @@ public class Drivetrain extends SubsystemBase{
         SmartDashboard.putNumber("FrontRightTurn", m_frontRight.getPosition().angle.getDegrees());
         SmartDashboard.putNumber("BackLeftTurn", m_backLeft.getPosition().angle.getDegrees());
         SmartDashboard.putNumber("BackRightTurn", m_backRight.getPosition().angle.getDegrees());
-    SmartDashboard.putNumber("NavX Reading", navx.getRotation2d().getDegrees());
+        SmartDashboard.putNumber("NavX Reading", navx.getRotation2d().getDegrees());
     }
 
     public void drive(double x, double y, double rot, boolean fieldRelative) {
@@ -102,9 +115,23 @@ public class Drivetrain extends SubsystemBase{
 
     public void driveWithChassisSpeeds(ChassisSpeeds chassisSpeeds) {
         m_swerveModuleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(m_swerveModuleStates, DriveConst.kMaxSpeed);
         m_frontLeft.setDesiredState(m_swerveModuleStates[0]);
         m_frontRight.setDesiredState(m_swerveModuleStates[1]);
         m_backLeft.setDesiredState(m_swerveModuleStates[2]);
         m_backRight.setDesiredState(m_swerveModuleStates[3]);
+    }
+    public void followTrajectory(SwerveSample sample) {
+        Pose2d pose = m_odometry.getPoseMeters();
+        ChassisSpeeds speeds = new ChassisSpeeds(
+            sample.vx + xController.calculate(pose.getX(), sample.x),
+            sample.vy + yController.calculate(pose.getY(), sample.y),
+            sample.omega + rotController.calculate(pose.getRotation().getRadians(), sample.heading)
+        );
+        driveWithChassisSpeeds(speeds);
+    }
+
+    public void resetOdometry(Pose2d pose) {
+        m_odometry.resetPose(pose);
     }
 }
