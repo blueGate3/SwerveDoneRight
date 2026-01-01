@@ -30,7 +30,7 @@ public class Robot extends TimedRobot {
 
 
   
-    private final Drivetrain drivetrain = new Drivetrain();
+    //private final Drivetrain drivetrain = new Drivetrain();
 
     private final Timer timer = new Timer();
     private final Optional<Trajectory<SwerveSample>> trajectory = Choreo.loadTrajectory("SquarePath");
@@ -55,29 +55,29 @@ public class Robot extends TimedRobot {
   public void disabledExit() {}
 
   public void autonomousInit() {
-        if (trajectory.isPresent()) {
-            // Get the initial pose of the trajectory
-            Optional<Pose2d> initialPose = trajectory.get().getInitialPose(isRedAlliance());
+        // if (trajectory.isPresent()) {
+        //     // Get the initial pose of the trajectory
+        //     Optional<Pose2d> initialPose = trajectory.get().getInitialPose(isRedAlliance());
 
-            if (initialPose.isPresent()) {
-                // Reset odometry to the start of the trajectory
-                drivetrain.resetOdometry(initialPose.get());
-            }
-        }
+        //     if (initialPose.isPresent()) {
+        //         // Reset odometry to the start of the trajectory
+        //         drivetrain.resetOdometry(initialPose.get());
+        //     }
+        // }
 
-        // Reset and start the timer when the autonomous period begins
-        timer.restart();
+        // // Reset and start the timer when the autonomous period begins
+        // timer.restart();
     }
 
     @Override
     public void autonomousPeriodic() {
-        if (trajectory.isPresent()) {
-            // Sample the trajectory at the current time into the autonomous period
-            Optional<SwerveSample> sample = trajectory.get().sampleAt(timer.get(), isRedAlliance());
-            if (sample.isPresent()) {
-                drivetrain.followTrajectory(sample.get());
-            }
-        }
+        // if (trajectory.isPresent()) {
+        //     // Sample the trajectory at the current time into the autonomous period
+        //     Optional<SwerveSample> sample = trajectory.get().sampleAt(timer.get(), isRedAlliance());
+        //     if (sample.isPresent()) {
+        //         drivetrain.followTrajectory(sample.get());
+        //     }
+        // }
     }
 
     private boolean isRedAlliance() {

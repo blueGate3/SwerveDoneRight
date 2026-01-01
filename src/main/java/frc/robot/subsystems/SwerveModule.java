@@ -52,7 +52,7 @@ public class SwerveModule extends SubsystemBase {
             m_driveEncoder = m_driveMotor.getEncoder(); //vortex built in encoder
             m_driveEncoder.setPosition(0); 
             m_driveMotorConfig
-                .smartCurrentLimit(55)
+                .smartCurrentLimit(DriveConst.kMaxDriveAmps)
                 .idleMode(IdleMode.kCoast)
                 .closedLoopRampRate(DriveConst.kClosedLoopRampRate);
             m_driveMotorConfig.encoder
