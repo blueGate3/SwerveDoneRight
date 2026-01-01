@@ -1,7 +1,8 @@
 package frc.robot;
 
+import com.pathplanner.lib.config.RobotConfig;
+
 public class Constants {
- 
     public class DriveConst {
 
             //CAN IDs for all our drivesystem
@@ -41,6 +42,7 @@ public class Constants {
     }   
     public class TrajectoryConst {
         public static final double kMaxSpeed = DriveConst.kMaxSpeed;
-        public static final double kMaxAcceleration = 1;
+        public static final double kMaxAcceleration = DriveConst.kMaxAccel;
+    
     }
 }

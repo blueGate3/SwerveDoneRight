@@ -6,6 +6,8 @@ package frc.robot;
 
 import java.util.Optional;
 
+import com.pathplanner.lib.commands.FollowPathCommand;
+
 import choreo.Choreo;
 import choreo.trajectory.SwerveSample;
 import choreo.trajectory.Trajectory;
@@ -37,12 +39,12 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     m_robotContainer = new RobotContainer();
+    FollowPathCommand.warmupCommand().schedule();
   }
 
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    m_robotContainer.repeat();
   }
 
   @Override
@@ -55,29 +57,11 @@ public class Robot extends TimedRobot {
   public void disabledExit() {}
 
   public void autonomousInit() {
-        // if (trajectory.isPresent()) {
-        //     // Get the initial pose of the trajectory
-        //     Optional<Pose2d> initialPose = trajectory.get().getInitialPose(isRedAlliance());
-
-        //     if (initialPose.isPresent()) {
-        //         // Reset odometry to the start of the trajectory
-        //         drivetrain.resetOdometry(initialPose.get());
-        //     }
-        // }
-
-        // // Reset and start the timer when the autonomous period begins
-        // timer.restart();
+    m_robotContainer.getAutonomousCommand().schedule();
     }
 
     @Override
     public void autonomousPeriodic() {
-        // if (trajectory.isPresent()) {
-        //     // Sample the trajectory at the current time into the autonomous period
-        //     Optional<SwerveSample> sample = trajectory.get().sampleAt(timer.get(), isRedAlliance());
-        //     if (sample.isPresent()) {
-        //         drivetrain.followTrajectory(sample.get());
-        //     }
-        // }
     }
 
     private boolean isRedAlliance() {
