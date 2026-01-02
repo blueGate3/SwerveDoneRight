@@ -29,7 +29,7 @@ import frc.robot.subsystems.Drivetrain;
 public class RobotContainer {
 
   private final Drivetrain m_drivetrain = new Drivetrain();
-  private final ControllerSubsystem m_controller = new ControllerSubsystem();
+  private final ControllerSubsystem m_controller  = new ControllerSubsystem();
   private final CommandPS4Controller m_driverController = new CommandPS4Controller(0);
   
   private final StructSubscriber<Pose2d> poseSub = NetworkTableInstance.getDefault()
@@ -42,6 +42,7 @@ public class RobotContainer {
   private void configureBindings() {
     // m_drivetrain.setDefaultCommand(
     //   Commands.run(
+
     //     () -> m_drivetrain.drive(
     //       -m_driverController.getRawAxis(1), 
     //       -m_driverController.getRawAxis(0), 
@@ -49,10 +50,10 @@ public class RobotContainer {
     //       true), 
     //     m_drivetrain)
     // );
-    m_driverController.button(0).onTrue(leftRumble().until(m_driverController.button(3)));
+    m_driverController.button(5).onTrue(leftRumble().until(m_driverController.button(3)));
     m_driverController.button(1).and(m_driverController.button(2))
       .onTrue(bothRumble());
-    m_driverController.button(4).onChange(leftRumble());
+    m_driverController.button(4).onChange(rightRumble());
   }
 
   public void updateTelemetry() {
