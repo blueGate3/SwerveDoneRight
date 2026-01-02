@@ -48,7 +48,6 @@ public class SwerveModule extends SubsystemBase {
          */
         public SwerveModule(int driveMotorChannel, int turningMotorChannel) {
             m_driveMotor = new SparkFlex(driveMotorChannel, SparkLowLevel.MotorType.kBrushless);
-            m_driveMotorConfig.encoder.positionConversionFactor(DriveConst.drivingWheelGearRatio);
             m_driveMotorConfig = new SparkFlexConfig();
             m_driveEncoder = m_driveMotor.getEncoder(); //vortex built in encoder
             m_driveEncoder.setPosition(0); 

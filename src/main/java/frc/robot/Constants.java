@@ -44,6 +44,16 @@ public class Constants {
     public class TrajectoryConst {
         public static final double kMaxSpeed = DriveConst.kMaxSpeed;
         public static final double kMaxAcceleration = DriveConst.kMaxAccel;
-    
+        
+        //translation section of our pid loops for auto alignment
+        public static final double kPT = 0;
+        public static final double kIT = 0;
+        public static final double kDT = 0;
+        
+        //rotation section of our pid loops for auto alignment.
+        public static final double kPRot = 0;
+        public static final double kIRot = 0;
+        public static final double kDRot = 0;
+        
     }
 }

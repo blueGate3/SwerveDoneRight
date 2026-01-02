@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.DriveConst;
+import frc.robot.Constants.TrajectoryConst;
 
 public class Drivetrain extends SubsystemBase{
     private final Translation2d m_frontLeftLocation = new Translation2d(DriveConst.halfSideLength, DriveConst.halfSideLength);
@@ -44,9 +45,9 @@ public class Drivetrain extends SubsystemBase{
     private SwerveModuleState[] m_robotState = {m_frontLeft.getState(), m_frontRight.getState(), m_backLeft.getState(), m_backRight.getState()}; //needed for pathplanner
     
     //pose controllers for choreo + misc. wpilib tasks. pathplanner uses own controllers, same kP kI kD though.
-    private final PIDController xController = new PIDController(10.0, 0.0, 0.0);
-    private final PIDController yController = new PIDController(10.0, 0.0, 0.0);
-    private final PIDController rotController = new PIDController(7.5, 0.0, 0.0); //different from other controller bc continuous input is from -Pi to PI
+    private final PIDController xController = new PIDController(TrajectoryConst.kPT, TrajectoryConst.kIT, TrajectoryConst.kDT);
+    private final PIDController yController = new PIDController(TrajectoryConst.kPT, TrajectoryConst.kIT, TrajectoryConst.kDT);
+    private final PIDController rotController = new PIDController(TrajectoryConst.kPRot, TrajectoryConst.kIRot, TrajectoryConst.kDRot); //different from other controller bc continuous input is from -Pi to PI
 
     private final SwerveDriveOdometry m_odometry;
     private final StructPublisher<Pose2d> posePub = NetworkTableInstance.getDefault()
@@ -67,8 +68,8 @@ public class Drivetrain extends SubsystemBase{
                 this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
                 (speeds, feedforwards) -> driveWithChassisSpeeds(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
                 new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                        new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-                        new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+                        new PIDConstants(TrajectoryConst.kPT, TrajectoryConst.kIT, TrajectoryConst.kDT), // Translation PID constants
+                        new PIDConstants(TrajectoryConst.kPRot, TrajectoryConst.kIRot, TrajectoryConst.kDRot) // Rotation PID constants
                 ),
                 RobotConfig.fromGUISettings(), // The robot configuration
                 () -> {
