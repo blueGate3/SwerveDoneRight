@@ -14,39 +14,46 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import frc.robot.subsystems.ControllerSubsystem;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
 
   private final Drivetrain m_drivetrain = new Drivetrain();
+  private final ControllerSubsystem m_controller  = new ControllerSubsystem();
   private final CommandPS4Controller m_driverController = new CommandPS4Controller(0);
-
   
   private final StructSubscriber<Pose2d> poseSub = NetworkTableInstance.getDefault()
-  .getStructTopic("Robot/CurrentPose", Pose2d.struct).subscribe(new Pose2d());
+    .getStructTopic("Robot/CurrentPose", Pose2d.struct).subscribe(new Pose2d());
 
   public RobotContainer() {
     configureBindings();
-    m_drivetrain.setDefaultCommand(
-      Commands.run(
-        () -> m_drivetrain.drive(
-          -m_driverController.getRawAxis(1), 
-          -m_driverController.getRawAxis(0), 
-          m_driverController.getRawAxis(4), 
-          true), 
-        m_drivetrain)
-    );
   }
 
   private void configureBindings() {
+    // m_drivetrain.setDefaultCommand(
+    //   Commands.run(
+
+    //     () -> m_drivetrain.drive(
+    //       -m_driverController.getRawAxis(1), 
+    //       -m_driverController.getRawAxis(0), 
+    //       m_driverController.getRawAxis(4), 
+    //       true), 
+    //     m_drivetrain)
+    // );
+    m_driverController.button(5).onTrue(leftRumble().until(m_driverController.button(3)));
+    m_driverController.button(1).and(m_driverController.button(2))
+      .onTrue(bothRumble());
+    m_driverController.button(4).onChange(rightRumble());
   }
 
-  public void repeat() {
+  public void updateTelemetry() {
     SmartDashboard.putNumber("OdometryX", poseSub.get().getX());
     SmartDashboard.putNumber("OdometryY", poseSub.get().getTranslation().getY()); //TODO for some reason this is backwards?
     SmartDashboard.putNumber("OdometryRot", poseSub.get().getRotation().getDegrees());
@@ -54,15 +61,28 @@ public class RobotContainer {
 
    public Command getAutonomousCommand() {
     try{
-        // Load the path you want to follow using its name in the GUI
         PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
     } catch (Exception e) {
         DriverStation.reportError("Big oops: " + e.getMessage(), e.getStackTrace());
         return Commands.none();
     }
+  }
+  public Command bothRumble() {
+    return Commands.run(
+      () -> m_controller.setRumble(RumbleType.kBothRumble, 1), m_controller);
+  }
+  public Command leftRumble() {
+    return Commands.run(
+      () -> m_controller.setRumble(RumbleType.kLeftRumble, 1), m_controller);
+  }
+  public Command rightRumble() {
+    return Commands.run(
+      () -> m_controller.setRumble(RumbleType.kRightRumble, 1), m_controller);
+  }
+  public Command stopRumble() {
+    return Commands.run(
+      () -> m_controller.setRumble(RumbleType.kBothRumble, 0), m_controller);
   }
 
 }

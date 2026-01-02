@@ -29,11 +29,7 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
   private final StructSubscriber<Pose2d> poseSub = NetworkTableInstance.getDefault()
       .getStructTopic("Robot/CurrentPose", Pose2d.struct).subscribe(new Pose2d());
-
-
-  
     //private final Drivetrain drivetrain = new Drivetrain();
-
     private final Timer timer = new Timer();
     private final Optional<Trajectory<SwerveSample>> trajectory = Choreo.loadTrajectory("SquarePath");
 
@@ -47,29 +43,9 @@ public class Robot extends TimedRobot {
     CommandScheduler.getInstance().run();
   }
 
-  @Override
-  public void disabledInit() {}
-
-  @Override
-  public void disabledPeriodic() {}
-
-  @Override
-  public void disabledExit() {}
-
   public void autonomousInit() {
     m_robotContainer.getAutonomousCommand().schedule();
     }
-
-    @Override
-    public void autonomousPeriodic() {
-    }
-
-    private boolean isRedAlliance() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Red);
-    }
-
-  @Override
-  public void autonomousExit() {}
 
   @Override
   public void teleopInit() {
@@ -77,23 +53,4 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
   }
-
-  @Override
-  public void teleopPeriodic() {}
-
-  @Override
-  public void teleopExit() {
-
-  }
-
-  @Override
-  public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
-  }
-
-  @Override
-  public void testPeriodic() {}
-
-  @Override
-  public void testExit() {}
 }
