@@ -20,13 +20,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import frc.robot.subsystems.ControllerSubsystem;
 import frc.robot.subsystems.Drivetrain;
 
 public class RobotContainer {
 
   private final Drivetrain m_drivetrain = new Drivetrain();
-  private final ControllerSubsystem m_controller  = new ControllerSubsystem();
   private final CommandPS4Controller m_driverController = new CommandPS4Controller(0);
   
   private final StructSubscriber<Pose2d> poseSub = NetworkTableInstance.getDefault()
@@ -47,10 +45,6 @@ public class RobotContainer {
     //       true), 
     //     m_drivetrain)
     // );
-    m_driverController.button(5).onTrue(leftRumble().until(m_driverController.button(3)));
-    m_driverController.button(1).and(m_driverController.button(2))
-      .onTrue(bothRumble());
-    m_driverController.button(4).onChange(rightRumble());
   }
 
   public void updateTelemetry() {
@@ -68,21 +62,4 @@ public class RobotContainer {
         return Commands.none();
     }
   }
-  public Command bothRumble() {
-    return Commands.run(
-      () -> m_controller.setRumble(RumbleType.kBothRumble, 1), m_controller);
-  }
-  public Command leftRumble() {
-    return Commands.run(
-      () -> m_controller.setRumble(RumbleType.kLeftRumble, 1), m_controller);
-  }
-  public Command rightRumble() {
-    return Commands.run(
-      () -> m_controller.setRumble(RumbleType.kRightRumble, 1), m_controller);
-  }
-  public Command stopRumble() {
-    return Commands.run(
-      () -> m_controller.setRumble(RumbleType.kBothRumble, 0), m_controller);
-  }
-
 }
